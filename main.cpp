@@ -31,7 +31,10 @@ void create_account(std::vector<Account>& accounts) {
         }
     } // line 29 in the rust code
 
-
+    cout << "Please enter a password: " << endl;
+    cin >> password;
+    cout << "Please enter the password again: " << endl;
+    cin >> password_verify;
 
 }
 
