@@ -54,7 +54,7 @@ void logon_account(std::vector<Account>& accounts, bool& logged_in, std::string&
     cout << "Enter your account email: " << endl;
     cin >> email;
 
-    cout << "Enter your password: ";
+    cout << "Enter your password: " << endl;
     cin >> password;
 
     for (const auto& account : accounts) {
@@ -72,55 +72,134 @@ void logon_account(std::vector<Account>& accounts, bool& logged_in, std::string&
 void deposit_money(std::vector<Account>& accounts,const std::string& logged_in_account) {
     float deposit_amount;
 
-    cout << "Enter deposit amount" << endl;
-    cin >> deposit_amount;
+    while (true) {
+        cout << "Enter deposit amount" << endl;
+        cin >> deposit_amount;
 
-    if (cin.fail()) {
-        cout << "Invalid input. Please enter a valid number." << endl;
-        return;
-    }
+        if (cin.fail()) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Invalid input. Please enter a valid number." << endl;
+        } else {
+            if (deposit_amount < 0) {
+                cout << "Deposit amount cannot be less than $0.00" << endl;
+                return;
+            }
 
-    if (deposit_amount < 0) {
-        cout << "Deposit amount cannot be less than $0.00" << endl;
-        return;
-    }
-
-    for (auto& account : accounts) {
-        if(account.email == logged_in_account) {
-            account.balance += deposit_amount;
-            cout << "Deposited $" << deposit_amount << " successfully. New balance is: $" << account.balance << endl;
-            return;
+            for (auto& account : accounts) {
+                if(account.email == logged_in_account) {
+                    account.balance += deposit_amount;
+                    cout << "Deposited $" << deposit_amount << " successfully. New balance is: $" << account.balance << endl;
+                    return;
+                }
+            }
         }
     }
 }
 
 void withdraw_money(std::vector<Account>& accounts, std::string& logged_in_account) {
     float withdraw_amount;
-    cout << "How much would you like to deposit today?" << endl;
 
-    cin >> withdraw_amount;
+    while (true) {
+        cout << "How much would you like to deposit today?" << endl;
 
-    if (cin.fail()) {
-        cout << "Invalid input. Please enter a valid number." << endl;
+        cin >> withdraw_amount;
+
+        if (cin.fail()) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Invalid input. Please enter a valid number." << endl;
+        } else{
+            if (withdraw_amount <= 0) {
+                cout << "Withdraw amount cannot be less than or equal to $0" << endl;
+            }
+
+            for (auto& account : accounts) {
+                if (account.email == logged_in_account) {
+                    if (account.balance - withdraw_amount >= 0) {
+                        account.balance -= withdraw_amount;
+                        cout << "Withdrew $" << withdraw_amount << " successfully. New balance is: $" << account.balance << endl;
+                        return;
+                    } else {
+                        cout << "You do not have the funds necessary for that withdraw." << endl;
+                        return;
+                    }
+                }
+            }
+        }
+
+        
+    }
+
+}
+
+void display_balance(const vector<Account>& accounts, const std::string& logged_in_account) {
+    for (auto& account : accounts) {
+        if (account.email == logged_in_account){
+            cout << "Your current account balance is $" << account.balance<< endl;
+            return;
+        }
+    }
+}
+
+void transfer_money(vector<Account>& accounts, std::string& logged_in_account){
+    string transfer_target;
+    float amount;
+    bool account_exists = false;
+    float source_account_balance;
+
+    cout << "Enter the email of the account you wish to transfer to: " << endl;
+    cin >> transfer_target;
+
+    for (const auto& account : accounts) {
+        if (account.email == transfer_target) {
+            account_exists = true;
+            break;
+        }
+    }
+    
+    if (!account_exists) {
+        cout << "The requested account was not found. Try again later." << endl;
         return;
     }
 
-    if (withdraw_amount <= 0) {
-        cout << "Withdraw amount cannot be less than or equal to $0" << endl;
+    cout << "Enter the amount you wish to transfer: " << endl;
+    cin >> amount;
+
+    if (cin.fail()) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Invalid input. Please enter a valid number." << endl;
+        }
+    
+    if (amount < 0) {
+        cout << "Transfer amount cannot be less than $0" << endl;
+        return;
     }
 
     for (auto& account : accounts) {
         if (account.email == logged_in_account) {
-            if (account.balance - withdraw_amount >= 0) {
-                account.balance -= withdraw_amount;
-                cout << "Withdrew $" << withdraw_amount << " successfully. New balance is: $" << account.balance << endl;
-                return;
+            if (account.balance >= amount) {
+                account.balance -= amount;
+                source_account_balance = account.balance;
+                // cout << "Your current balance is $" << account.balance << endl; this line is redundant
+                break;
             } else {
-                cout << "You do not have the funds necessary for that withdraw." << endl;
+                cout << "You do not have the required funds to complete this transfer." << endl;
                 return;
             }
         }
     }
+
+    for (auto& account : accounts) {
+        if (account.email == transfer_target) {
+            account.balance += amount;
+            cout << "Your transfer of $" << amount << " to " << transfer_target << " was successful. Your new balance is $" << source_account_balance << endl;
+            return;
+        }
+    }
+
+
 
 }
 
@@ -134,7 +213,6 @@ int main() {
         cout << "1) Login" << endl;
         cout << "2) Create an account" << endl;
         cout << "3) Exit application" << endl;
-        printf("Testg++");
 
         string user_input;
         cin >> user_input;
@@ -161,13 +239,13 @@ int main() {
             cin >> user_input2;
 
             if (user_input2 == "1") {
-                // TODO: deposit money funtion here
+                deposit_money(accounts, logged_in_account);
             } else if (user_input2 == "2") {
-                // TODO: withdraw money function will go here
+                withdraw_money(accounts, logged_in_account);
             } else if (user_input2 == "3") {
-                // TODO: Display balance function will go here
+                display_balance(accounts, logged_in_account);
             } else if (user_input2 == "4") {
-                // TODO: Transfer money function will go here
+                transfer_money(accounts, logged_in_account);
             } else if (user_input2 == "5") {
                 logged_in = false;
             } else {
